@@ -1,0 +1,23 @@
+{
+    "name": "bahaso/aminin-passport-client",
+    "description": "Aminin Passport Client provides Resource server of Auth server (OAuth2 server <Aminin Passport>)",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Edwin Fadilah Lukman",
+            "email": "edwinfadilah@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "guzzlehttp/guzzle": "~6.0",
+        "illuminate/cache": "^6.0",
+        "illuminate/contracts": "^6.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Aminin\\PassportClient\\": "src/"
+        }
+    }
+}
