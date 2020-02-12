@@ -10,8 +10,9 @@ namespace Aminin\PassportClient\Entities;
 
 
 use Aminin\PassportClient\Entities\Contracts\UserInterface;
+use Illuminate\Contracts\Support\Arrayable;
 
-class User implements UserInterface
+class User implements UserInterface, Arrayable
 {
     protected $id;
     protected $name;
