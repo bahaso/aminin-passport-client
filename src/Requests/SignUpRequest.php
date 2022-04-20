@@ -13,112 +13,83 @@ use Aminin\PassportClient\Requests\Contracts\PassportRequest;
 
 class SignUpRequest implements PassportRequest
 {
-    public $email = "";
-    public $password = "";
-    public $firstname = "";
-    public $lastname = "";
-    public $gender = "";
-    public $cellphonenumber = "";
-    public $country_id = "";
-    public $city_id = "";
-    public $birthday = "";
-    public $client_id = "";
-    public $client_secret = "";
-    public $grant_type = "";
-    public $scope = "";
-
     public function __construct(
-        $client_id,
-        $client_secret,
-        $email,
-        $password,
-        $first_name,
-        $last_name,
-        $gender,
-        $cell_phone_number,
-        $country_id,
-        $city_id,
-        $birthday,
-        $grant_type,
-        $scope
-    )
-    {
-        $this->client_id = $client_id;
-        $this->client_secret = $client_secret;
-        $this->email = $email;
-        $this->password = $password;
-        $this->first_name = $first_name;
-        $this->last_name = $last_name;
-        $this->gender = $gender;
-        $this->cell_phone_number = $cell_phone_number;
-        $this->country_id = $country_id;
-        $this->city_id = $city_id;
-        $this->birthday = $birthday;
-        $this->grant_type = $grant_type;
-        $this->scope = $scope;
-    }
+        public string $client_id = "",
+        public string $client_secret = "",
+        public string $email = "",
+        public string $password = "",
+        public string $firstname = "",
+        public string $lastname = "",
+        public string $gender = "",
+        public string $cellphonenumber = "",
+        public string $country_id = "",
+        public string $city_id = "",
+        public string $birthday = "",
+        public string $grant_type = "",
+        public string $scope = ""
+    ) {}
 
-    public function getEmail()
+    public function getEmail(): string
     {
         return $this->email;
     }
 
-    public function getPassword()
+    public function getPassword(): string
     {
         return $this->password;
     }
 
-    public function getFirstName()
+    public function getFirstName(): string
     {
         return $this->firstname;
     }
 
-    public function getLastName()
+    public function getLastName(): string
     {
         return $this->lastname;
     }
 
-    public function getGender()
+    public function getGender(): string
     {
         return $this->gender;
     }
 
-    public function getCellPhoneNumber()
+    public function getCellPhoneNumber(): string
     {
         return $this->cellphonenumber;
     }
 
-    public function getCountryId()
+    public function getCountryId(): string
     {
         return $this->country_id;
     }
 
-    public function getCityId()
+    public function getCityId(): string
     {
         return $this->city_id;
     }
 
-    public function getBirthDay()
+    public function getBirthDay(): string
     {
         return $this->birthday;
     }
 
-    public function getClientId()
+    public function getClientId(): string
     {
         return $this->client_id;
     }
 
-    public function getClientSecret()
+    public function getClientSecret(): string
     {
         return $this->client_secret;
     }
 
-    public function getGrantType()
+    public function getGrantType(): string
     {
         return $this->grant_type;
     }
 
-    public function getScope()
+    public function getScope(): string
     {
         return $this->scope;
     }

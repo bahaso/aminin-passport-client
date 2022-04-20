@@ -11,26 +11,13 @@ namespace Aminin\PassportClient\Requests;
 
 class LoginRequest
 {
-    public $provider = "";
-    public $response_type = "";
-    public $client_id = "";
-    public $scope = "";
-    public $phone_number = "";
-
     public function __construct(
-        $provider,
-        $response_type,
-        $client_id,
-        $scope,
-        $phone_number
-    )
-    {
-        $this->provider = $provider;
-        $this->response_type = $response_type;
-        $this->client_id = $client_id;
-        $this->scope = $scope;
-        $this->phone_number = $phone_number;
-    }
+        public string $provider = "",
+        public string $response_type = "",
+        public string $client_id = "",
+        public string $scope = "",
+        public string $phone_number = ""
+    ) {}
 
     /**
      * @return string
@@ -71,6 +58,5 @@ class LoginRequest
     {
         return $this->phone_number;
     }
-
 
 }

@@ -13,20 +13,14 @@ use Aminin\PassportClient\Requests\Contracts\PassportRequest;
 
 class SocialAuthRequest implements PassportRequest
 {
-    public $access_token = "";
-    public $client_id = "";
-    public $client_secret = "";
-    public $grant_type = "";
-    public $scope = "";
 
-    public function __construct($client_id, $client_secret, $access_token, $grant_type, $scope)
-    {
-        $this->client_id = $client_id;
-        $this->client_secret = $client_secret;
-        $this->access_token = $access_token;
-        $this->grant_type = $grant_type;
-        $this->scope = $scope;
-    }
+    public function __construct(
+        public string $client_id = "",
+        public string $client_secret = "",
+        public string $access_token = "",
+        public string $grant_type = "",
+        public string $scope = ""
+    ) {}
 
     public function getAccessToken()
     {

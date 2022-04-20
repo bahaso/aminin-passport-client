@@ -11,32 +11,15 @@ namespace Aminin\PassportClient\Requests;
 
 class RegisterRequest
 {
-    public $provider = "";
-    public $response_type = "";
-    public $client_id = "";
-    public $scope = "";
-    public $name = "";
-    public $email = "";
-    public $phone_number = "";
-
     public function __construct(
-        $provider,
-        $response_type,
-        $client_id,
-        $scope,
-        $name,
-        $email,
-        $phone_number
-    )
-    {
-        $this->provider = $provider;
-        $this->response_type = $response_type;
-        $this->client_id = $client_id;
-        $this->scope = $scope;
-        $this->name = $name;
-        $this->email = $email;
-        $this->phone_number = $phone_number;
-    }
+        public string $provider = '',
+        public string $response_type = '',
+        public string $client_id = '',
+        public string $scope = '',
+        public string $name = '',
+        public string $email = '',
+        public string $phone_number = ''
+    ) {}
 
     /**
      * @return string
@@ -93,6 +76,5 @@ class RegisterRequest
     {
         return $this->phone_number;
     }
-
 
 }

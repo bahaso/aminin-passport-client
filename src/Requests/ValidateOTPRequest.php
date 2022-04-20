@@ -13,29 +13,15 @@ use Aminin\PassportClient\Requests\Contracts\PassportRequest;
 
 class ValidateOTPRequest implements PassportRequest
 {
-    public $grant_type = "";
-    public $client_id = "";
-    public $client_secret = "";
-    public $otp_code = "";
-    public $state = "";
-    public $otp = "";
 
     public function __construct(
-        $grant_type,
-        $client_id,
-        $client_secret,
-        $otp_code,
-        $state,
-        $otp
-    )
-    {
-        $this->grant_type = $grant_type;
-        $this->client_id = $client_id;
-        $this->client_secret = $client_secret;
-        $this->otp_code = $otp_code;
-        $this->state = $state;
-        $this->otp = $otp;
-    }
+        public string $grant_type = "",
+        public string $client_id = "",
+        public string $client_secret = "",
+        public string $otp_code = "",
+        public string $state = "",
+        public string $otp = ""
+    ) {}
 
     /**
      * @return string

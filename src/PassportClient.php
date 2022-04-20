@@ -24,6 +24,7 @@ use Aminin\PassportClient\Responses\GetUserResponse;
 use Aminin\PassportClient\Responses\Response;
 use Aminin\PassportClient\Responses\SignInResponse;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
 
 class PassportClient
 {
@@ -39,30 +40,19 @@ class PassportClient
 
     protected function prepareHttpClient()
     {
-        $client = new \GuzzleHttp\Client([
-            'verify' => false
-        ]);
+        $client = Http::withoutVerifying()->acceptJson();
 
         return $client;
     }
 
-    private function prepareRequestHeader()
-    {
-        return [
-            'headers' => [
-                'Accept' => 'application/json'
-            ]
-        ];
-    }
-
     public function testConnection()
     {
-        $client = $this->prepareHttpClient();
+        $url = config('passport.test_connection_url', 'https://passporization.dev.io/api/connection/test');
 
-        $response = $client->get(config('passport.test_connection_url', 'https://passporization.dev.io/api/connection/test'));
+        $response = $this->httpPostRequest($url);
 
-        if ($response->getStatusCode() == 200) {
-            return new Response($response->getStatusCode(), true, "You are connected with Auth Server", json_decode($response->getBody()));
+        if ($response->ok()) {
+            return new Response($response->status(), true, "You are connected with Auth Server", $response->json());
         }
         else {
             throw new ServerResponseException(500, "Something wrong with Authorization Server");
@@ -84,24 +74,12 @@ class PassportClient
     
     public function signIn(SignInRequest $request)
     {
-        $http = $this->prepareHttpClient();
+        $url = config('passport.sign_in_url', '');
         $body = $this->prepareRequestBody($request);
-        $headers = $this->prepareRequestHeader();
-        $options = array_merge($body, $headers);
 
-        try {
-            $request = $http->request(
-                'post',
-                config('passport.sign_in_url', ''),
-                $options);
-        }
-        catch (\Exception $exception) {
-            throw new ServerResponseException($exception->getCode(), $exception->getMessage());
-        }
+        $response = $this->httpPostRequest($url, $body);
 
-        $response = json_decode((string) $request->getBody(), true);
-
-        return $this->handleAuthServerSignInResponse($response);
+        return $this->handleAuthServerSignInResponse($response->json());
     }
 
     private function handleAuthServerSignInResponse($response)
@@ -147,32 +125,18 @@ class PassportClient
 
     public function signUp(SignUpRequest $request)
     {
-        $http = $this->prepareHttpClient();
+        $url = config('passport.sign_up_url', '');
         $body = $this->prepareRequestBody($request);
-        $headers = $this->prepareRequestHeader();
-        $options = array_merge($body, $headers);
 
-        try {
-            $request = $http->request(
-                'post',
-                config('passport.sign_up_url', ''),
-                $options);
-        }
-        catch (\Exception $exception) {
-            throw new ServerResponseException($exception->getCode(), $exception->getMessage());
-        }
+        $response = $this->httpPostRequest($url, $body);
 
-        $response = json_decode((string) $request->getBody(), true);
-
-        return $this->handleAuthServerSignInResponse($response);
+        return $this->handleAuthServerSignInResponse($response->json());
     }
 
     private function prepareRequestBody(PassportRequest $request)
     {
         if ($request->getGrantType() == self::GRANT_TYPE_PASSWORD || $request->getGrantType() == self::GRANT_TYPE_SOCIAL || $request->getGrantType() == self::GRANT_TYPE_AUTH_OTP_CODE) {
-            return [
-                "form_params" => (array) $request
-            ];
+            return (array) $request;
         }
         else {
             throw new InvalidGrantTypeException(422, "Grant type " . $request->getGrantType() . " is not supported");
@@ -201,33 +165,11 @@ class PassportClient
 
     public function getUserFromToken($access_token)
     {
-        $http = $this->prepareHttpClient();
-        $headers = $this->prepareRequestHeaderWithToken($access_token);
-        $options = array_merge($headers);
+        $url = config('passport.sign_in_url', '');
 
-        try {
-            $request = $http->request(
-                'get',
-                config('passport.get_user_from_token_url', ''),
-                $options);
-        }
-        catch (\Exception $exception) {
-            throw new ServerResponseException($exception->getCode(), $exception->getMessage());
-        }
+        $response = $this->httpGetRequest(url: $url, access_token: $access_token);
 
-        $response = json_decode((string) $request->getBody(), true);
-
-        return $this->handleAuthServerGetUserResponse($response);
-    }
-
-    private function prepareRequestHeaderWithToken($access_token)
-    {
-        return [
-            'headers' => [
-                'Accept' => 'application/json',
-                'Authorization' => 'Bearer ' . $access_token
-            ]
-        ];
+        return $this->handleAuthServerGetUserResponse($response->json());
     }
 
     private function handleAuthServerGetUserResponse($response)
@@ -268,31 +210,17 @@ class PassportClient
 
     public function socialAuth(SocialAuthRequest $request, $provider)
     {
-        $http = $this->prepareHttpClient();
+        $url = match ($provider) {
+            self::FACEBOOK_PROVIDER => config('passport.facebook_auth_url', ''),
+            self::GOOGLE_PROVIDER => config('passport.facebook_auth_url', ''),
+            default => "notfound"
+        };
+
         $body = $this->prepareRequestBody($request);
-        $headers = $this->prepareRequestHeader();
-        $options = array_merge($body, $headers);
 
-        if ($provider == self::FACEBOOK_PROVIDER)
-            $url = config('passport.facebook_auth_url', '');
-        else if ($provider == self::GOOGLE_PROVIDER)
-            $url = config('passport.google_auth_url', '');
-        else
-            $url = "notfound";
+        $response = $this->httpPostRequest($url, $body);
 
-        try {
-            $request = $http->request(
-                'post',
-                $url,
-                $options);
-        }
-        catch (\Exception $exception) {
-            throw new ServerResponseException($exception->getCode(), $exception->getMessage());
-        }
-
-        $response = json_decode((string) $request->getBody(), true);
-
-        return $this->handleAuthServerSignInResponse($response);
+        return $this->handleAuthServerSignInResponse($response->json());
     }
 
     public function checkToken($access_token, $scope)
@@ -313,93 +241,37 @@ class PassportClient
             return new GetUserResponse(200, true, 'success', self::$user);
         }
 
-        $http = $this->prepareHttpClient();
-        $headers = $this->prepareRequestHeaderWithToken($access_token);
-        $options = array_merge($headers);
-        
-        try {
-            $request = $http->request(
-                'get',
-                config('passport.check_token_url', '').'?scope='.$scope,
-                $options);
-        }
-        catch (\Exception $exception) {
-            throw new ServerResponseException($exception->getCode(), $exception->getMessage());
-        }
+        $url = config('passport.check_token_url', ''). '?scope=' . $scope;
+        $response = $this->httpGetRequest(url: $url, access_token: $access_token);
 
-        $response = json_decode((string) $request->getBody(), true);
-
-        return $this->handleAuthServerCheckTokenResponse($access_token, $scope, $response);
+        return $this->handleAuthServerCheckTokenResponse($access_token, $scope, $response->json());
     }
 
     public function register(RegisterRequest $request)
     {
-        $http = $this->prepareHttpClient();
-        $body = [
-            "form_params" => (array) $request
-        ];
-        $headers = $this->prepareRequestHeader();
-        $options = array_merge($body, $headers);
+        $url = config('passport.register_url', '');
 
-        try {
-            $request = $http->request(
-                'post',
-                config('passport.register_url', ''),
-                $options);
-        }
-        catch (\Exception $exception) {
-            throw new ServerResponseException($exception->getCode(), $exception->getMessage());
-        }
+        $response = $this->httpPostRequest($url, (array) $request);
 
-        $response = json_decode((string) $request->getBody(), true);
-
-        return $this->handleAuthServerSignInResponse($response);
+        return $this->handleAuthServerSignInResponse($response->json());
     }
 
     public function login(LoginRequest $request)
     {
-        $http = $this->prepareHttpClient();
-        $body = [
-            "form_params" => (array) $request
-        ];
-        $headers = $this->prepareRequestHeader();
-        $options = array_merge($body, $headers);
+        $url = config('passport.log_in_url', '');
+        $response = $this->httpPostRequest($url, (array) $request);
 
-        try {
-            $request = $http->request(
-                'post',
-                config('passport.log_in_url', ''),
-                $options);
-        }
-        catch (\Exception $exception) {
-            throw new ServerResponseException($exception->getCode(), $exception->getMessage());
-        }
-
-        $response = json_decode((string) $request->getBody(), true);
-
-        return $this->handleAuthServerSignInResponse($response);
+        return $this->handleAuthServerSignInResponse($response->json());
     }
 
     public function validateOTP(ValidateOTPRequest $request)
     {
-        $http = $this->prepareHttpClient();
+        $url = config('passport.validate_otp_url', '');
         $body = $this->prepareRequestBody($request);
-        $headers = $this->prepareRequestHeader();
-        $options = array_merge($body, $headers);
 
-        try {
-            $request = $http->request(
-                'post',
-                config('passport.validate_otp_url', ''),
-                $options);
-        }
-        catch (\Exception $exception) {
-            throw new ServerResponseException($exception->getCode(), $exception->getMessage());
-        }
+        $response = $this->httpPostRequest($url, $body);
 
-        $response = json_decode((string) $request->getBody(), true);
-
-        return $this->handleAuthServerSignInResponse($response);
+        return $this->handleAuthServerSignInResponse($response->json());
     }
 
     /**
@@ -408,5 +280,39 @@ class PassportClient
     public static function user()
     {
         return self::$user;
+    }
+
+    private function httpGetRequest(string $url, array $data = [], string $access_token = null)
+    {
+        $http = $this->prepareHttpClient();
+
+        if ($access_token)
+            $http = $http->withToken($access_token);
+
+        try {
+            $response = $http->get($url, $data);
+        }
+        catch (\Exception $exception) {
+            throw new ServerResponseException($exception->getCode(), $exception->getMessage());
+        }
+
+        return $response;
+    }
+
+    private function httpPostRequest(string $url, array $data = [], string $access_token = null)
+    {
+        $http = $this->prepareHttpClient();
+
+        if ($access_token)
+            $http = $http->withToken($access_token);
+
+        try {
+            $response = $http->post($url, $data);
+        }
+        catch (\Exception $exception) {
+            throw new ServerResponseException($exception->getCode(), $exception->getMessage());
+        }
+
+        return $response;
     }
 }

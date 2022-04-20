@@ -14,20 +14,13 @@ use Illuminate\Contracts\Support\Arrayable;
 
 class User implements UserInterface, Arrayable
 {
-    protected $id;
-    protected $name;
-    protected $email;
-    protected $calling_code;
-    protected $phone_number;
-
-    public function __construct($id, $name, $email, $calling_code, $phone_number)
-    {
-        $this->name = $name;
-        $this->id = $id;
-        $this->email = $email;
-        $this->calling_code = $calling_code;
-        $this->phone_number = $phone_number;
-    }
+    public function __construct(
+        protected $id,
+        protected $name,
+        protected $email,
+        protected $calling_code,
+        protected $phone_number
+    ) {}
 
     /**
      * Get the instance as an array.
